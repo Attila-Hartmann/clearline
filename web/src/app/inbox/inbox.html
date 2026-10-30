@@ -1,0 +1,89 @@
+<div class="page">
+  <section class="intro">
+    <div>
+      <h1>Complaint inbox</h1>
+      <p class="muted lede">
+        An AI agent investigates each complaint, checks the bank's policies and the law, and drafts a reply with citations.
+        Nothing reaches the customer until a person approves it.
+      </p>
+    </div>
+    <p-button label="Submit a complaint" icon="pi pi-pencil" (onClick)="composing.set(true)" />
+  </section>
+
+  <div class="toolbar" role="group" aria-label="Filter cases">
+    <button type="button" [class.on]="filter() === 'review'" (click)="filter.set('review')" [attr.aria-pressed]="filter() === 'review'">
+      Needs review <span class="count">{{ counts().review }}</span>
+    </button>
+    <button type="button" [class.on]="filter() === 'all'" (click)="filter.set('all')" [attr.aria-pressed]="filter() === 'all'">
+      All cases <span class="count">{{ counts().all }}</span>
+    </button>
+  </div>
+
+  @if (cases() === undefined) {
+    <p class="muted">Loading cases…</p>
+  } @else if (cases() === null) {
+    <p class="panel empty">The API is not reachable. Start it with <code>uv run uvicorn clearline.main:app</code> and reload.</p>
+  } @else if (visible().length === 0) {
+    <div class="panel empty">
+      <p>No complaints waiting for review.</p>
+      <p-button label="Submit a complaint" [text]="true" (onClick)="composing.set(true)" />
+    </div>
+  } @else {
+    <ul class="list panel" role="list">
+      @for (c of visible(); track c.id) {
+        <li>
+          <a [routerLink]="['/cases', c.id]" class="row">
+            <span class="status"><span class="pill" [class]="STATUS[c.status].css">{{ STATUS[c.status].label }}</span></span>
+            <span class="what">
+              <strong class="subj">{{ c.subject }}</strong>
+              <span class="subtle">
+                {{ c.triage ? CATEGORY[c.triage.category] : 'Not triaged yet' }}
+                @if (c.lang) { <span class="lang">{{ c.lang | uppercase }}</span> }
+              </span>
+            </span>
+            <span class="flags">
+              @for (f of c.risk_flags ?? []; track f) {
+                @if (FLAG[f]; as meta) { <span class="flag" [class]="meta.tone">{{ meta.label }}</span> }
+              }
+            </span>
+            <span class="proposal">
+              @if (c.decision) { <span class="subtle">Agent proposes</span> {{ DECISION[c.decision] }} } @else { <span class="subtle">No proposal yet</span> }
+            </span>
+            <span class="due">
+              @if (days(c); as d) {
+                <span [class.urgent]="d <= 3">{{ d }} days left</span>
+              } @else if (c.due_date) { <span class="urgent">Due today</span> }
+              <span class="subtle">{{ c.due_date ?? '' }}</span>
+            </span>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</div>
+
+<p-dialog header="Submit a complaint" [(visible)]="composing" [modal]="true" [style]="{ width: 'min(720px, 96vw)' }" [draggable]="false">
+  <p class="muted note">
+    Write as a customer of the fictional Danubia Bank, in English or Hungarian. Customer IDs C-1001 to C-1011 exist in the mock
+    core-banking system. Do not enter real personal data.
+  </p>
+  <div class="samples" role="group" aria-label="Examples">
+    <span class="subtle">Start from an example:</span>
+    @for (s of samples; track s.label) {
+      <button type="button" class="sample" (click)="useSample(s)">{{ s.label }}</button>
+    }
+  </div>
+  <label class="field">
+    <span>Subject</span>
+    <input pInputText [(ngModel)]="subject" maxlength="200" />
+  </label>
+  <label class="field">
+    <span>Message</span>
+    <textarea pTextarea [(ngModel)]="body" rows="9" maxlength="5000"></textarea>
+  </label>
+  @if (error()) { <p class="err" role="alert">{{ error() }}</p> }
+  <ng-template #footer>
+    <p-button label="Cancel" [text]="true" (onClick)="composing.set(false)" />
+    <p-button label="Send to the agent" icon="pi pi-send" [loading]="sending()" [disabled]="subject.length < 3 || body.length < 20" (onClick)="submit()" />
+  </ng-template>
+</p-dialog>

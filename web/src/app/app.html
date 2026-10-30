@@ -1,0 +1,23 @@
+<a class="skip" href="#main">Skip to content</a>
+<header class="bar">
+  <div class="bar-inner">
+    <a routerLink="/" class="brand" aria-label="Clearline home">
+      <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
+        <rect width="32" height="32" rx="7" fill="#0F5E73" />
+        <rect x="7" y="9" width="18" height="3.2" rx="1" fill="#fff" />
+        <rect x="7" y="14.4" width="11" height="3.2" rx="1" fill="#14212B" />
+        <rect x="7" y="19.8" width="15" height="3.2" rx="1" fill="#fff" />
+      </svg>
+      <span>Clearline</span>
+    </a>
+    <nav aria-label="Main">
+      @for (item of nav; track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: item.exact }">{{ item.label }}</a>
+      }
+    </nav>
+    <p class="env">Danubia Bank is fictional. All data is synthetic.</p>
+  </div>
+</header>
+<main id="main">
+  <router-outlet />
+</main>

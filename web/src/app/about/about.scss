@@ -1,0 +1,28 @@
+.hero { max-width: 900px; padding: 24px 0 32px; }
+.hero h1 { font-size: clamp(1.9rem, 3.4vw, 2.8rem); line-height: 1.12; letter-spacing: -0.02em; max-width: 22ch; }
+.lede { font-size: 1.1rem; color: var(--ink-2); max-width: 64ch; margin: 16px 0; }
+.links { display: flex; flex-wrap: wrap; gap: 20px; font-weight: 600; }
+
+.flow { padding: 24px; margin-bottom: 16px; }
+.flow h2 { margin-bottom: 16px; }
+.flow ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; counter-reset: s; }
+.flow li { counter-increment: s; display: flex; flex-direction: column; gap: 4px; padding: 14px; border-radius: 8px; background: var(--mist); position: relative; }
+.flow li strong::before { content: counter(s) '. '; color: var(--danube); }
+.flow li span { font-size: 0.9rem; }
+.flow li.human { background: var(--green-tint); }
+.flow li .who { margin-top: auto; padding-top: 6px; color: var(--ink-3); font-size: 0.8rem; }
+
+.cols { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; align-items: start; }
+.cols .panel { padding: 24px; }
+dl { margin: 12px 0 0; }
+dt { font-weight: 700; margin-top: 14px; }
+dd { margin: 4px 0 0; color: var(--ink-2); max-width: 70ch; }
+.stack { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; }
+.stack dt, .stack dd { margin: 0; }
+.gap { margin-top: 28px; }
+
+@media (max-width: 1000px) {
+  .flow ol { grid-template-columns: 1fr 1fr; }
+  .cols { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) { .flow ol { grid-template-columns: 1fr; } }

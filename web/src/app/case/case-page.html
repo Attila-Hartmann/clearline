@@ -1,0 +1,168 @@
+<div class="page">
+  <a routerLink="/" class="back">Back to inbox</a>
+
+  @if (detail(); as d) {
+    <header class="head">
+      <div class="title">
+        <h1>{{ d.subject }}</h1>
+        <p class="subtle">
+          Case {{ d.id }}, received {{ d.received_at.slice(0, 10) }}@if (state().triage; as t) {, {{ CATEGORY[t.category] }}, {{ t.is_payment_service ? 'payment service' : 'not a payment service' }}}
+        </p>
+      </div>
+      <div class="facts">
+        <span class="pill" [class]="STATUS[status()].css">{{ running() ? 'Agent working' : STATUS[status()].label }}</span>
+        @if (state().due_date) {
+          <div class="deadline" [class.urgent]="(daysLeft() ?? 99) <= 3">
+            <strong>{{ daysLeft() }} days</strong>
+            <span class="subtle">to the statutory deadline, {{ state().due_date }}</span>
+          </div>
+        }
+      </div>
+    </header>
+
+    @if (state().assessment?.risk_flags?.length || state().screen?.is_injection) {
+      <div class="flags" role="status">
+        @for (f of state().assessment?.risk_flags ?? []; track f) {
+          @if (FLAG[f]; as meta) { <span class="flag" [class]="meta.tone">{{ meta.label }}</span> }
+        }
+        @if (state().screen?.is_injection) {
+          <span class="muted injection">The message tries to instruct the AI. It was treated as data: {{ state().screen?.reason }}</span>
+        }
+      </div>
+    }
+
+    <div class="grid">
+      <!-- 1. What the customer wrote (as the models saw it) -->
+      <section class="panel col email" aria-labelledby="h-email">
+        <h2 id="h-email">Customer message</h2>
+        <p class="subtle">Personal data is redacted before any model sees the text. Hover a bar to see what was removed.</p>
+        <div class="mail">
+          <app-redacted-text [text]="state().redacted ?? (d.showcase ? '' : d.body)" />
+          @if (!state().redacted) { <p class="subtle">Redacting…</p> }
+        </div>
+        @if (state().triage; as t) {
+          <dl class="kv">
+            <dt>Agent's reading</dt><dd>{{ t.summary }}</dd>
+            <dt>Priority</dt><dd>{{ t.priority }}</dd>
+            @if (state().extraction; as x) {
+              <dt>Customer ID</dt><dd>{{ x['customer_id'] ?? 'not given' }}</dd>
+            }
+          </dl>
+        }
+      </section>
+
+      <!-- 2. What the agent did, in order -->
+      <section class="panel col trace" aria-labelledby="h-trace">
+        <div class="trace-head">
+          <h2 id="h-trace">What the agent did</h2>
+          <p class="subtle">
+            {{ totals().llm }} model calls, {{ totals().tools }} lookups, {{ totals().ms / 1000 | number: '1.1-1' }} s,
+            {{ '$' + (totals().cost | number: '1.4-4') }}
+          </p>
+        </div>
+        <ol class="steps" aria-live="polite">
+          @for (e of events(); track $index) {
+            <li [class]="e.actor">
+              <details>
+                <summary>
+                  <span class="step">{{ stepLabel(e) }}</span>
+                  <span class="meta subtle">
+                    @if (e.model) { {{ e.model }} }
+                    @if (e.latency_ms) { <span>{{ e.latency_ms }} ms</span> }
+                    @if (cost(e)) { <span>{{ cost(e) }}</span> }
+                  </span>
+                </summary>
+                <pre>{{ detailFor(e) | json }}</pre>
+                @if (e.prompt_version) { <p class="subtle">Prompt {{ e.prompt_version }}</p> }
+              </details>
+            </li>
+          }
+          @if (running()) { <li class="working"><span class="pulse" aria-hidden="true"></span> Working…</li> }
+        </ol>
+        @if (failure()) { <p class="err" role="alert">The run stopped: {{ failure() }}</p> }
+
+        @if (state().retrieved?.length) {
+          <h3 class="sub">Policy and law it retrieved</h3>
+          <ul class="sources">
+            @for (c of state().retrieved; track c.id) {
+              <li>
+                <button type="button" (click)="source.set(c)">{{ c.section }}</button>
+                <span class="subtle">{{ c.title }}</span>
+                @if (state().assessment?.rules_applied?.includes(c.id)) { <span class="flag info">applied</span> }
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <!-- 3. The proposal and the human decision -->
+      <section class="col decision" aria-labelledby="h-decision">
+        @if (state().assessment; as a) {
+          <div class="panel proposal">
+            <h2 id="h-decision">Agent's proposal</h2>
+            <p class="verdict">{{ DECISION[a.decision] }}@if (a.refund_huf || a.goodwill_huf) {<span>, refund {{ huf(a.refund_huf + a.goodwill_huf) }}</span>}</p>
+            <p>{{ a.rationale }}</p>
+            <p class="subtle">Confidence {{ a.confidence | percent }}</p>
+          </div>
+        } @else {
+          <div class="panel proposal"><h2 id="h-decision">Agent's proposal</h2><p class="subtle">Appears when the investigation is done.</p></div>
+        }
+
+        @if (state().draft; as draft) {
+          @if (mode() === 'edit') {
+            <label class="edit">
+              <span>Edit the letter before sending</span>
+              <textarea pTextarea [(ngModel)]="editedBody" rows="18"></textarea>
+            </label>
+          } @else {
+            <app-letter [draft]="draft" [sources]="state().retrieved ?? []" (open)="source.set($event)" />
+          }
+
+          @if (status() === 'awaiting_review') {
+            <div class="actions panel">
+              @switch (mode()) {
+                @case ('edit') {
+                  <p-button label="Send edited letter" icon="pi pi-check" [loading]="deciding()" (onClick)="decide('edit')" />
+                  <p-button label="Cancel" [text]="true" (onClick)="mode.set('idle')" />
+                }
+                @case ('reject') {
+                  <label class="reason">
+                    <span>Why is the draft wrong? This goes into the audit trail.</span>
+                    <textarea pTextarea [(ngModel)]="rejectReason" rows="3"></textarea>
+                  </label>
+                  <p-button label="Reject draft" severity="danger" [disabled]="rejectReason.trim().length < 5" [loading]="deciding()" (onClick)="decide('reject')" />
+                  <p-button label="Cancel" [text]="true" (onClick)="mode.set('idle')" />
+                }
+                @default {
+                  <p-button label="Approve and send" icon="pi pi-check" [loading]="deciding()" (onClick)="decide('approve')" />
+                  <p-button label="Edit letter" icon="pi pi-pencil" [outlined]="true" (onClick)="beginEdit()" />
+                  <p-button label="Reject draft" [text]="true" severity="danger" (onClick)="mode.set('reject')" />
+                }
+              }
+            </div>
+          } @else if (state().final; as f) {
+            <div class="panel outcome" [class.ok]="f.status === 'approved'" role="status">
+              @if (f.status === 'approved') {
+                <strong>Sent to the customer</strong>
+                @if (f.refund_huf) { <span>, {{ huf(f.refund_huf) }} refund released</span> }
+                @if (state().review?.action === 'edit') { <span class="subtle"> (edited by the reviewer)</span> }
+              } @else {
+                <strong>Draft rejected by the reviewer.</strong> <span>{{ f.reason }}</span>
+              }
+            </div>
+          }
+        }
+      </section>
+    </div>
+  } @else {
+    <p class="muted">Loading case…</p>
+  }
+</div>
+
+<p-dialog [visible]="!!source()" (visibleChange)="source.set(null)" [header]="source()?.section ?? ''" [modal]="true" [style]="{ width: 'min(640px, 94vw)' }">
+  @if (source(); as s) {
+    <p class="subtle">{{ s.title }}</p>
+    <p class="source-text">{{ s.content }}</p>
+    @if (s.source_url) { <a [href]="s.source_url" target="_blank" rel="noopener">Official source</a> }
+  }
+</p-dialog>

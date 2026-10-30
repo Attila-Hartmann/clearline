@@ -1,0 +1,54 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: api } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+      - run: uv run ruff check . ../evals
+      - run: uv run pyright
+      - run: uv run pytest -q
+
+  evals:
+    # The quality gate: the agent runs on the golden set; a metric below threshold fails the build.
+    needs: api
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+    services:
+      db:
+        image: pgvector/pgvector:pg17
+        env: { POSTGRES_USER: clearline, POSTGRES_PASSWORD: clearline, POSTGRES_DB: clearline }
+        ports: ["5433:5432"]
+        options: --health-cmd "pg_isready -U clearline" --health-interval 2s --health-retries 30
+    env:
+      DATABASE_URL: postgresql://clearline:clearline@localhost:5433/clearline
+      DATA_MODE: synthetic
+      WORKER_API_KEY: ${{ secrets.WORKER_API_KEY }}
+    defaults: { run: { working-directory: api } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+      - run: uv run python -m clearline.cli ingest
+      - run: uv run python ../evals/run.py --workers 8
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: eval-report, path: evals/reports/latest.json }
+
+  web:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: web } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm, cache-dependency-path: web/package-lock.json }
+      - run: npm ci
+      - run: npx ng build

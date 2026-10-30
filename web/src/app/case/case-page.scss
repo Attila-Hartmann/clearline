@@ -1,0 +1,75 @@
+.back { display: inline-block; margin-bottom: 12px; font-weight: 600; text-decoration: none; }
+.back::before { content: '‹ '; }
+
+.head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 12px; }
+.title h1 { max-width: 40ch; }
+.title p { margin: 6px 0 0; }
+.facts { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.deadline { display: flex; flex-direction: column; text-align: right; }
+.deadline strong { font-size: 1.3rem; }
+.deadline.urgent strong { color: var(--statute); }
+
+.flags { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
+.injection { font-size: 0.88rem; }
+
+.grid { display: grid; grid-template-columns: minmax(260px, 0.8fr) minmax(300px, 0.9fr) minmax(520px, 1.9fr); gap: 16px; align-items: start; }
+.col { padding: 20px; min-width: 0; }
+.decision { padding: 0; display: flex; flex-direction: column; gap: 12px; }
+
+.mail { margin: 12px 0 16px; padding: 16px; background: var(--mist); border-radius: 6px; font-size: 0.92rem; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 12px; margin: 0; font-size: 0.9rem; }
+.kv dt { color: var(--ink-3); }
+.kv dd { margin: 0; }
+
+.trace-head p { margin: 4px 0 12px; }
+.steps { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+.steps li { counter-increment: step; position: relative; padding: 0 0 0 34px; }
+.steps li::before {
+  content: counter(step); position: absolute; left: 0; top: 7px; width: 22px; height: 22px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 0.72rem; font-weight: 700; background: var(--danube-tint); color: var(--danube-2);
+}
+.steps li:not(:last-child)::after { content: ''; position: absolute; left: 10.5px; top: 30px; bottom: -6px; width: 1px; background: var(--rule); }
+.steps li.tool::before { background: var(--mist); color: var(--ink-2); border: 1px solid var(--rule); }
+.steps li.system::before { background: var(--mist); color: var(--ink-3); }
+.steps li.human::before { background: var(--green-tint); color: var(--green); }
+details { padding: 6px 0 8px; }
+summary { cursor: pointer; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; list-style: none; }
+summary::-webkit-details-marker { display: none; }
+.step { font-weight: 600; }
+.meta { display: inline-flex; gap: 10px; }
+pre { margin: 8px 0 0; padding: 10px; background: var(--mist); border-radius: 6px; font-size: 0.75rem; max-height: 240px; overflow: auto; white-space: pre-wrap; }
+.steps li.working { color: var(--danube); font-weight: 600; padding-top: 6px; }
+.pulse { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--danube); margin-right: 6px; }
+@media (prefers-reduced-motion: no-preference) {
+  .pulse { animation: pulse 1s ease-in-out infinite alternate; }
+  @keyframes pulse { from { opacity: 0.25; } to { opacity: 1; } }
+}
+.err { color: var(--statute); }
+
+.sub { margin: 20px 0 8px; font-size: 0.95rem; }
+.sources { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 0.88rem; }
+.sources button { font: inherit; font-weight: 600; color: var(--danube); background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+.sources li { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+
+.proposal { padding: 20px; }
+.proposal p { margin: 8px 0 0; }
+.verdict { font-size: 1.35rem; font-weight: 700; color: var(--danube-2); }
+
+.edit, .reason { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 0.9rem; width: 100%; }
+.edit textarea, .reason textarea { width: 100%; font: 400 0.95rem/1.6 var(--serif); }
+
+.actions { position: sticky; bottom: 12px; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; padding: 12px; box-shadow: 0 8px 24px -12px rgba(20, 33, 43, 0.4); }
+.outcome { padding: 14px 18px; background: var(--statute-tint); }
+.outcome.ok { background: var(--green-tint); }
+
+.source-text { white-space: pre-wrap; font-family: var(--serif); line-height: 1.6; }
+
+@media (max-width: 1280px) {
+  .grid { grid-template-columns: 1fr 1fr; }
+  .decision { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .grid { grid-template-columns: 1fr; }
+  .head { flex-direction: column; }
+  .deadline { text-align: left; }
+}

@@ -128,7 +128,7 @@ def main() -> int:
     graph = build(stop_before_review=True)
     with ThreadPoolExecutor(args.workers) as ex:
         results = list(ex.map(lambda c: run_case(graph, c), cases))
-    summary = summarise(results) | {"at": datetime.now(UTC).isoformat(timespec="seconds")}
+    summary = summarise(results) | {"at": datetime.now(UTC).isoformat(timespec="seconds"), "thresholds": THRESHOLDS}
     fails = gate(summary)
     summary["passed"] = not fails
     report = {"summary": summary, "failures": fails, "results": results}

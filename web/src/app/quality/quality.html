@@ -1,0 +1,64 @@
+<div class="page">
+  <h1>Quality</h1>
+  <p class="muted lede">
+    Every change to a prompt, model or retrieval setting runs the agent on a golden set of synthetic complaints with known correct outcomes.
+    The change ships only if every metric clears its threshold.
+  </p>
+
+  @if (report(); as r) {
+    <section class="panel summary">
+      <div class="gate" [class.pass]="r.summary.passed">
+        <strong>{{ r.summary.passed ? 'Quality gate passed' : 'Quality gate failed' }}</strong>
+        <span class="subtle">{{ r.summary.cases }} cases, run {{ r.summary.at.slice(0, 16).replace('T', ' ') }} UTC</span>
+      </div>
+      <dl class="stats">
+        <div><dt>Average cost per case</dt><dd>{{ '$' + (r.summary.avg_cost_usd | number: '1.4-4') }}</dd></div>
+        <div><dt>Median time per case</dt><dd>{{ r.summary.p50_latency_s }} s</dd></div>
+        <div><dt>Models</dt><dd>{{ r.summary.models['worker'] }} / {{ r.summary.models['drafter'] }}</dd></div>
+      </dl>
+    </section>
+
+    <section class="panel metrics" aria-label="Metrics against thresholds">
+      @for (m of rows(); track m.key) {
+        <div class="metric">
+          <div class="label">
+            <strong>{{ m.label }}</strong>
+            <span class="subtle">{{ m.explain }}</span>
+          </div>
+          <div class="meter" role="img" [attr.aria-label]="m.label + ': ' + (m.value | percent) + ', threshold ' + (m.threshold | percent)">
+            <div class="fill" [class.fail]="!m.pass" [style.width.%]="m.value * 100"></div>
+            @if (m.threshold !== undefined) { <div class="tick" [style.left.%]="m.threshold * 100"></div> }
+          </div>
+          <span class="value" [class.fail]="!m.pass">{{ m.value | percent: '1.0-1' }}</span>
+        </div>
+      }
+      <p class="subtle legend">The vertical mark is the threshold.</p>
+    </section>
+
+    <section>
+      <h2>Cases the agent got wrong</h2>
+      @if (misses().length === 0) {
+        <p class="muted">None in the latest run.</p>
+      } @else {
+        <ul class="misses">
+          @for (x of misses(); track x.id) {
+            <li class="panel">
+              <strong>{{ x.id }}</strong>
+              @if (x.error) { <span class="err">{{ x.error }}</span> } @else {
+                <span>Missed: {{ failed(x.checks).join(', ') }}</span>
+                <span class="subtle">
+                  Expected {{ x.expected.decision.map(d => DECISION[d]).join(' or ') }}, {{ huf(x.expected.refund_huf) }};
+                  agent proposed {{ DECISION[x.got.decision] }}, {{ huf(x.got.refund_huf) }}.
+                </span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  } @else if (data() === null) {
+    <p class="panel empty">No evaluation report yet. Run <code>uv run python ../evals/run.py</code> from the api folder.</p>
+  } @else {
+    <p class="muted">Loading…</p>
+  }
+</div>

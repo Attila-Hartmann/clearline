@@ -1,0 +1,64 @@
+<div class="page about">
+  <section class="hero">
+    <h1>A bank complaint, answered in 15 seconds. Sent only when a person says so.</h1>
+    <p class="lede">
+      Clearline is an open-source reference implementation of an AI agent for a regulated workflow. It reads a customer complaint,
+      investigates the account, checks the bank's policies and Hungarian financial law, and drafts a reply with citations.
+      A complaints officer makes the final call.
+    </p>
+    <p class="links">
+      <a routerLink="/">Open the inbox</a>
+      <a href="https://github.com/attila-hartmann/clearline" target="_blank" rel="noopener">Read the code</a>
+      <a routerLink="/quality">See how it is tested</a>
+    </p>
+  </section>
+
+  <section class="panel flow" aria-labelledby="h-flow">
+    <h2 id="h-flow">What happens to a complaint</h2>
+    <ol>
+      @for (s of pipeline; track s.name) {
+        <li [class.human]="s.who === 'person'">
+          <strong>{{ s.name }}</strong>
+          <span>{{ s.what }}</span>
+          <span class="who">{{ s.who }}</span>
+        </li>
+      }
+    </ol>
+  </section>
+
+  <section class="cols">
+    <div class="panel">
+      <h2>Why it is built this way</h2>
+      <dl>
+        <dt>The process comes first</dt>
+        <dd>The agent follows a complaint-handling procedure with deadlines, escalation rules and mandatory content. The model fills steps; it does not invent the process.</dd>
+        <dt>People decide</dt>
+        <dd>The workflow stops at human review. Approve, edit and reject are recorded with the reviewer and reason, the human oversight the EU AI Act expects.</dd>
+        <dt>Measured, not vibed</dt>
+        <dd>A golden set of complaints with known outcomes runs in CI. A prompt or model change that lowers decision accuracy, refund accuracy or groundedness does not ship.</dd>
+        <dt>Cost is a feature</dt>
+        <dd>Cheap models do screening, triage and lookups; a stronger model writes the decision and the letter. Every call's tokens, cost and latency are in the audit log.</dd>
+        <dt>Customer data stays in the EU</dt>
+        <dd>Each model endpoint declares its region. In live mode the service refuses to start with a non-EU endpoint. Non-EU models are only used on synthetic data.</dd>
+      </dl>
+    </div>
+    <div class="panel">
+      <h2>Stack</h2>
+      <dl class="stack">
+        <dt>Agent</dt><dd>Python, LangGraph with a Postgres checkpointer, function calling, OpenAI-compatible model tiers</dd>
+        <dt>Retrieval</dt><dd>PostgreSQL, pgvector, full-text search in Hungarian and English, reciprocal rank fusion, multilingual embeddings run locally</dd>
+        <dt>API</dt><dd>FastAPI with server-sent events, Pydantic, audit log in Postgres</dd>
+        <dt>Interface</dt><dd>Angular 22 with signals, Optimus UI</dd>
+        <dt>Quality</dt><dd>Golden-set evals with an LLM judge and CI thresholds, pytest, ruff, pyright</dd>
+        <dt>Delivery</dt><dd>Docker, GitHub Actions, Azure Container Apps</dd>
+      </dl>
+      <h2 class="gap">Built by</h2>
+      <p>
+        Attila Hartmann, AI engineer in Budapest. Before software I spent ten years in business and project roles, which is why
+        this starts from the process and the risk.
+        <a href="https://www.linkedin.com/in/attila-hartmann-b7b41a24b" target="_blank" rel="noopener">LinkedIn</a>
+      </p>
+      <p class="subtle">Danubia Bank is fictional and all data is synthetic. Regulation summaries are simplified and are not legal advice.</p>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,65 @@
+@import '@openng/icons/openng-icons.css';
+
+:root {
+  --ink: #14212b;
+  --ink-2: #4a5a66;
+  --ink-3: #6f7f8a;
+  --danube: #0f5e73;
+  --danube-2: #0b4757;
+  --danube-tint: #e3eef1;
+  --mist: #eef2f4;
+  --paper: #ffffff;
+  --rule: #d5dde2;
+  --amber: #b26b00;
+  --amber-tint: #fbf0dc;
+  --statute: #b42318;
+  --statute-tint: #fbe7e5;
+  --green: #2e7d4f;
+  --green-tint: #e2f1e8;
+
+  --sans: 'Public Sans', system-ui, sans-serif;
+  --serif: 'Source Serif 4', Georgia, serif;
+
+  --r-panel: 10px;
+  --r-control: 6px;
+  --space: 8px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--mist);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { line-height: 1.2; margin: 0; font-weight: 650; letter-spacing: -0.01em; }
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.15rem; }
+h3 { font-size: 1rem; }
+a { color: var(--danube); }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--danube) 55%, white); outline-offset: 2px; }
+
+.page { max-width: 1440px; margin: 0 auto; padding: 24px 24px 64px; }
+.panel { background: var(--paper); border: 1px solid var(--rule); border-radius: var(--r-panel); }
+.muted { color: var(--ink-2); }
+.subtle { color: var(--ink-3); font-size: 0.85rem; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* status pills: shape encodes state family, colour encodes urgency */
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+.pill::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pill.review { background: var(--amber-tint); color: var(--amber); }
+.pill.approved { background: var(--green-tint); color: var(--green); }
+.pill.rejected, .pill.failed { background: var(--statute-tint); color: var(--statute); }
+.pill.processing, .pill.new { background: var(--danube-tint); color: var(--danube); }
+
+.flag { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 0.78rem; font-weight: 600; }
+.flag.danger { background: var(--statute-tint); color: var(--statute); }
+.flag.warn { background: var(--amber-tint); color: var(--amber); }
+.flag.info { background: var(--danube-tint); color: var(--danube); }
+
+/* Motion is opt-in: components only animate inside @media (prefers-reduced-motion: no-preference). */
