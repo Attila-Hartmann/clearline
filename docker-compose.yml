@@ -1,0 +1,32 @@
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: clearline
+      POSTGRES_PASSWORD: clearline
+      POSTGRES_DB: clearline
+    ports: ["5433:5432"]
+    volumes: [dbdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clearline"]
+      interval: 2s
+      retries: 30
+
+  api:
+    build: ./api
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://clearline:clearline@db:5432/clearline
+    ports: ["8000:8000"]
+    depends_on:
+      db: { condition: service_healthy }
+    profiles: [full]
+
+  web:
+    build: ./web
+    ports: ["4200:80"]
+    depends_on: [api]
+    profiles: [full]
+
+volumes:
+  dbdata:

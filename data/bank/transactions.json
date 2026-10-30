@@ -1,0 +1,35 @@
+[
+  {"id": "T-9001", "customer_id": "C-1001", "date": "2026-10-03", "type": "card_purchase", "description": "MEDIAMARKT BUDAPEST ARENA", "amount_huf": -89990, "card_last4": "4821", "auth_code": "A77120"},
+  {"id": "T-9002", "customer_id": "C-1001", "date": "2026-10-03", "type": "card_purchase", "description": "MEDIAMARKT BUDAPEST ARENA", "amount_huf": -89990, "card_last4": "4821", "auth_code": "A77120", "note": "same authorisation code as T-9001 (settlement duplicated)"},
+  {"id": "T-9003", "customer_id": "C-1001", "date": "2026-10-14", "type": "atm_withdrawal", "description": "DANUBIA ATM BUDA 3RD THIS MONTH", "amount_huf": -50000, "atm_owner": "own", "withdrawal_no_in_month": 3},
+  {"id": "T-9004", "customer_id": "C-1001", "date": "2026-10-14", "type": "fee", "fee_code": "ATM_OWN", "description": "ATM withdrawal fee 0.6%", "amount_huf": -300, "related": "T-9003"},
+  {"id": "T-9005", "customer_id": "C-1001", "date": "2026-10-01", "type": "incoming_transfer", "description": "SALARY ACME KFT", "amount_huf": 480000},
+
+  {"id": "T-9010", "customer_id": "C-1002", "date": "2026-10-12", "type": "card_purchase_online", "description": "ELECTROWORLD-SHOP.COM", "amount_huf": -54000, "card_last4": "1177", "sca": "none", "merchant_country": "LT"},
+  {"id": "T-9070", "customer_id": "C-1002", "date": "2026-10-20", "type": "atm_withdrawal", "description": "DANUBIA ATM PEST 12", "amount_huf": -40000, "atm_owner": "own", "withdrawal_no_in_month": 1, "atm_dispense_status": "failed", "note": "ATM journal: cassette jam, 0 notes dispensed"},
+  {"id": "T-9071", "customer_id": "C-1002", "date": "2026-10-02", "type": "incoming_transfer", "description": "SALARY", "amount_huf": 310000},
+
+  {"id": "T-9020", "customer_id": "C-1003", "date": "2026-09-30", "type": "fee", "fee_code": "PLUS_MONTHLY", "description": "Plus package monthly fee (September)", "amount_huf": -2490},
+  {"id": "T-9021", "customer_id": "C-1003", "date": "2026-09-08", "type": "incoming_transfer", "description": "NYUGDIJ ONYF", "amount_huf": 268000},
+  {"id": "T-9022", "customer_id": "C-1003", "date": "2026-09-30", "type": "fee", "fee_code": "PAPER_STATEMENT", "description": "Paper statement (September)", "amount_huf": -500},
+
+  {"id": "T-9040", "customer_id": "C-1004", "date": "2026-10-01", "type": "loan_repayment", "description": "L-55 installment October", "amount_huf": -64300, "loan_id": "L-55"},
+  {"id": "T-9042", "customer_id": "C-1004", "date": "2026-10-03", "type": "fee", "fee_code": "LOAN_REMINDER", "description": "Payment reminder letter L-55", "amount_huf": -2500, "loan_id": "L-55", "note": "batch run used 2026-09-30 balance snapshot"},
+
+  {"id": "T-9030", "customer_id": "C-1005", "date": "2026-10-05", "type": "card_purchase", "description": "HOTEL AM STEPHANSPLATZ WIEN 120.00 EUR", "amount_huf": -47400, "card_last4": "3310", "currency": "EUR", "original_amount": 120.0},
+  {"id": "T-9031", "customer_id": "C-1005", "date": "2026-10-05", "type": "fee", "fee_code": "FX_CARD", "description": "Foreign currency card payment fee 1.5%", "amount_huf": -711, "related": "T-9030"},
+  {"id": "T-9032", "customer_id": "C-1005", "date": "2026-10-01", "type": "incoming_transfer", "description": "SALARY GLOBEX LTD", "amount_huf": 920000},
+
+  {"id": "T-9060", "customer_id": "C-1006", "date": "2026-10-10", "type": "fee", "fee_code": "ACCOUNT_CLOSURE", "description": "Account closure fee (account < 6 months)", "amount_huf": -2000},
+
+  {"id": "T-9061", "customer_id": "C-1007", "date": "2026-09-30", "type": "fee", "fee_code": "PLUS_MONTHLY", "description": "Plus package monthly fee (September)", "amount_huf": -2490},
+  {"id": "T-9062", "customer_id": "C-1007", "date": "2026-09-10", "type": "incoming_transfer", "description": "MEGBIZASI DIJ", "amount_huf": 180000},
+
+  {"id": "T-9043", "customer_id": "C-1008", "date": "2026-09-10", "type": "fee", "fee_code": "LOAN_REMINDER", "description": "Payment reminder letter L-71", "amount_huf": -2500, "loan_id": "L-71"},
+  {"id": "T-9044", "customer_id": "C-1008", "date": "2026-09-24", "type": "fee", "fee_code": "LOAN_REMINDER", "description": "Payment reminder letter L-71 (second)", "amount_huf": -2500, "loan_id": "L-71"},
+  {"id": "T-9045", "customer_id": "C-1008", "date": "2026-09-27", "type": "loan_repayment", "description": "L-71 installment September (late)", "amount_huf": -38900, "loan_id": "L-71"},
+
+  {"id": "T-9050", "customer_id": "C-1009", "date": "2026-09-10", "type": "card_purchase_online", "description": "LUMIERE DECOR SARL", "amount_huf": -129000, "card_last4": "8125", "sca": "passed", "merchant_country": "FR", "note": "delivery promised by 2026-09-25"},
+
+  {"id": "T-9080", "customer_id": "C-1011", "date": "2026-09-30", "type": "fee", "fee_code": "PAPER_STATEMENT", "description": "Paper statement (September)", "amount_huf": -500}
+]

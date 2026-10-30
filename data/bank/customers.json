@@ -1,0 +1,13 @@
+[
+  {"id": "C-1001", "name": "Kovács Anna", "lang": "hu", "package": "PLUS", "card_last4": "4821", "opened": "2019-03-12", "vulnerable": false, "estatement_since": "2021-01-01"},
+  {"id": "C-1002", "name": "Nagy Péter", "lang": "hu", "package": "BASIC", "card_last4": "1177", "opened": "2020-06-02", "vulnerable": false, "estatement_since": null},
+  {"id": "C-1003", "name": "Szabó Eszter", "lang": "hu", "package": "PLUS", "card_last4": "9032", "opened": "2004-11-20", "vulnerable": true, "vulnerability_note": "age 78, prefers paper letters", "estatement_since": null},
+  {"id": "C-1004", "name": "Tóth Gábor", "lang": "hu", "package": "BASIC", "card_last4": "5560", "opened": "2022-01-17", "vulnerable": false, "loan": {"id": "L-55", "monthly_installment": 64300, "due_day": 1}, "estatement_since": "2022-01-17"},
+  {"id": "C-1005", "name": "Mark Ellison", "lang": "en", "package": "PLUS", "card_last4": "3310", "opened": "2023-05-08", "vulnerable": false, "estatement_since": "2023-05-08"},
+  {"id": "C-1006", "name": "Varga Zsolt", "lang": "hu", "package": "BASIC", "card_last4": "2049", "opened": "2026-07-15", "closed": "2026-10-10", "vulnerable": false, "estatement_since": "2026-07-15"},
+  {"id": "C-1007", "name": "Kiss Réka", "lang": "hu", "package": "PLUS", "card_last4": "7713", "opened": "2018-09-30", "vulnerable": false, "estatement_since": "2020-02-01"},
+  {"id": "C-1008", "name": "Molnár Dávid", "lang": "hu", "package": "BASIC", "card_last4": "6402", "opened": "2021-04-04", "vulnerable": false, "loan": {"id": "L-71", "monthly_installment": 38900, "due_day": 5}, "estatement_since": "2021-04-04"},
+  {"id": "C-1009", "name": "Sophie Laurent", "lang": "en", "package": "BASIC", "card_last4": "8125", "opened": "2024-02-19", "vulnerable": false, "estatement_since": "2024-02-19"},
+  {"id": "C-1010", "name": "Farkas Ilona", "lang": "hu", "package": "BASIC", "card_last4": "3398", "opened": "1998-05-05", "vulnerable": true, "vulnerability_note": "recent bereavement noted by branch", "estatement_since": null},
+  {"id": "C-1011", "name": "Balogh Tamás", "lang": "hu", "package": "BASIC", "card_last4": "4470", "opened": "2017-08-08", "vulnerable": false, "estatement_since": "2026-08-01"}
+]

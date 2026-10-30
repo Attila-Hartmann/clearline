@@ -1,0 +1,41 @@
+[project]
+name = "clearline"
+version = "0.1.0"
+description = "Agentic complaint resolution for regulated banking"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  "pydantic>=2.9",
+  "pydantic-settings>=2.6",
+  "psycopg[binary,pool]>=3.2",
+  "pgvector>=0.3",
+  "openai>=1.55",
+  "langgraph>=0.2.60",
+  "fastembed>=0.4",
+  "langgraph-checkpoint-postgres>=2.0",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.3", "ruff>=0.8", "pyright>=1.1.390"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 150
+
+[tool.ruff.lint.per-file-ignores]
+"../evals/build_golden.py" = ["E501"]  # scenario specs are data rows
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pyright]
+include = ["clearline", "tests"]
+typeCheckingMode = "standard"
+reportTypedDictNotRequiredAccess = false  # LangGraph state is filled progressively, node by node
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,11 @@
+{
+  "BASIC_MONTHLY": {"name": "Basic account monthly fee", "amount_huf": 990},
+  "PLUS_MONTHLY": {"name": "Plus package monthly fee", "amount_huf": 2490, "waiver": "waived for a month if incoming transfers in that month total at least HUF 250,000"},
+  "CARD_ANNUAL": {"name": "Debit card annual fee", "amount_huf": 3900, "waiver": "free on the Plus package"},
+  "ATM_OWN": {"name": "Danubia ATM cash withdrawal", "rule": "first 2 withdrawals per calendar month free, then 0.6%, min HUF 200"},
+  "ATM_OTHER": {"name": "Other bank's ATM cash withdrawal", "rule": "1% + HUF 400"},
+  "FX_CARD": {"name": "Card payment in foreign currency", "rule": "1.5% of the HUF amount"},
+  "PAPER_STATEMENT": {"name": "Monthly paper statement", "amount_huf": 500, "waiver": "free for customers on e-statement"},
+  "LOAN_REMINDER": {"name": "Loan payment reminder letter", "amount_huf": 2500, "rule": "only if the installment is unpaid on the reminder date; at most one per loan per calendar month"},
+  "ACCOUNT_CLOSURE": {"name": "Account closure", "rule": "free if the account has been open for 6 months or more, otherwise HUF 2,000"}
+}
