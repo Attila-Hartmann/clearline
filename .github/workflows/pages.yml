@@ -1,0 +1,32 @@
+name: pages
+
+# Static read-only demo on GitHub Pages: the Angular app plus recorded agent runs (web/public/demo, from `cli export`).
+on:
+  push:
+    branches: [main]
+    paths: [web/**, .github/workflows/pages.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency: { group: pages, cancel-in-progress: true }
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: { name: github-pages, url: "${{ steps.deploy.outputs.page_url }}" }
+    defaults: { run: { working-directory: web } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm, cache-dependency-path: web/package-lock.json }
+      - run: npm ci
+      - run: npx ng build -c production,demo
+      - run: cp dist/web/browser/index.html dist/web/browser/404.html  # deep links into the SPA
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: web/dist/web/browser }
+      - id: deploy
+        uses: actions/deploy-pages@v4

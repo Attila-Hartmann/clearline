@@ -9,7 +9,7 @@ import { TextareaModule } from '@openng/optimus-ui/textarea';
 import { InputTextModule } from '@openng/optimus-ui/inputtext';
 import { catchError, of } from 'rxjs';
 
-import { Api, CaseSummary } from '../api';
+import { Api, CaseSummary, DEMO } from '../api';
 import { CATEGORY, DECISION, FLAG, STATUS, daysLeft } from '../labels';
 
 const SAMPLES = [
@@ -53,6 +53,7 @@ export class Inbox {
   });
 
   protected readonly composing = signal(false);
+  protected readonly demo = DEMO;
   protected readonly sending = signal(false);
   protected readonly error = signal<string | null>(null);
   protected subject = '';

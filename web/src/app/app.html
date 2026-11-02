@@ -18,6 +18,12 @@
     <p class="env">Danubia Bank is fictional. All data is synthetic.</p>
   </div>
 </header>
+@if (demo) {
+  <p class="demo-strip">
+    Read-only demo: recorded runs of the real agent. Submitting complaints and reviewer decisions are switched off here.
+    <a href="https://github.com/Attila-Hartmann/clearline#run-it-locally">Run the live agent with one command</a>
+  </p>
+}
 <main id="main">
   <router-outlet />
 </main>

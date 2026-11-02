@@ -6,7 +6,7 @@ import { ButtonModule } from '@openng/optimus-ui/button';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { TextareaModule } from '@openng/optimus-ui/textarea';
 
-import { Api, AuditEvent, CaseDetail, CaseState, Chunk } from '../api';
+import { Api, AuditEvent, DEMO, CaseDetail, CaseState, Chunk } from '../api';
 import { CATEGORY, DECISION, FLAG, STATUS, STEP, daysLeft, huf } from '../labels';
 import { Letter } from './letter';
 import { RedactedText } from './redacted-text';
@@ -44,6 +44,7 @@ export class CasePage {
   protected readonly STATUS = STATUS;
   protected readonly STEP = STEP;
   protected readonly huf = huf;
+  protected readonly demo = DEMO;
 
   protected readonly status = computed(() => this.detail()?.status ?? 'new');
   protected readonly daysLeft = computed(() => daysLeft(this.state().due_date));

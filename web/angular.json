@@ -53,6 +53,12 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "demo": {
+              "define": {
+                "STATIC_DEMO": "'2026-11-02'"
+              },
+              "baseHref": "/clearline/"
             }
           },
           "defaultConfiguration": "production"

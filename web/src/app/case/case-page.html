@@ -134,9 +134,10 @@
                   <p-button label="Cancel" [text]="true" (onClick)="mode.set('idle')" />
                 }
                 @default {
-                  <p-button label="Approve and send" icon="pi pi-check" [loading]="deciding()" (onClick)="decide('approve')" />
-                  <p-button label="Edit letter" icon="pi pi-pencil" [outlined]="true" (onClick)="beginEdit()" />
-                  <p-button label="Reject draft" [text]="true" severity="danger" (onClick)="mode.set('reject')" />
+                  <p-button label="Approve and send" icon="pi pi-check" [loading]="deciding()" [disabled]="demo" (onClick)="decide('approve')" />
+                  <p-button label="Edit letter" icon="pi pi-pencil" [outlined]="true" [disabled]="demo" (onClick)="beginEdit()" />
+                  <p-button label="Reject draft" [text]="true" severity="danger" [disabled]="demo" (onClick)="mode.set('reject')" />
+                  @if (demo) { <p class="subtle demo-note">A reviewer approves, edits or rejects here. Decisions are off in this read-only demo.</p> }
                 }
               }
             </div>

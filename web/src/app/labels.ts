@@ -1,3 +1,5 @@
+import { today } from './api';
+
 // Plain-language names for what the system does; the UI never shows internal identifiers unexplained.
 
 export const CATEGORY: Record<string, string> = {
@@ -60,8 +62,8 @@ export function huf(n: number | null | undefined): string {
   return n == null ? '–' : `${new Intl.NumberFormat('hu-HU').format(n)} Ft`;
 }
 
-export function daysLeft(due: string | null | undefined, today = new Date()): number | null {
+export function daysLeft(due: string | null | undefined, now = today()): number | null {
   if (!due) return null;
-  const ms = new Date(due + 'T23:59:59').getTime() - today.getTime();
+  const ms = new Date(due + 'T23:59:59').getTime() - now.getTime();
   return Math.ceil(ms / 86_400_000);
 }

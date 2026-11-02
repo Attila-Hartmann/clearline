@@ -59,6 +59,7 @@ pre { margin: 8px 0 0; padding: 10px; background: var(--mist); border-radius: 6p
 .edit textarea, .reason textarea { width: 100%; font: 400 0.95rem/1.6 var(--serif); }
 
 .actions { position: sticky; bottom: 12px; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; padding: 12px; box-shadow: 0 8px 24px -12px rgba(20, 33, 43, 0.4); }
+.demo-note { flex-basis: 100%; margin: 0; }
 .outcome { padding: 14px 18px; background: var(--statute-tint); }
 .outcome.ok { background: var(--green-tint); }
 

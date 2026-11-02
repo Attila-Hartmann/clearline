@@ -3,6 +3,8 @@
 **Agentic complaint resolution for regulated banking.** A customer email goes in. Out comes an approved, cited reply
 that is ready for audit, and a person decides before anything is sent.
 
+**[Live demo](https://attila-hartmann.github.io/clearline/)**: read-only, with recorded runs of the real agent. To run the agent yourself, see [Run it locally](#run-it-locally).
+
 ![Case view: the agent caught a prompt injection, refunded exactly the duplicated 89,990 Ft and drafted a cited reply](docs/img/case-injection.png)
 
 Clearline is an open-source reference implementation of an AI agent inside a real, regulated business process:

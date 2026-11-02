@@ -1,6 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
+
+declare const STATIC_DEMO: string; // snapshot date, set only by the `demo` build configuration
+/** GitHub Pages build: recorded runs of the real agent served as JSON (`cli export`); nothing can be submitted. */
+export const DEMO = typeof STATIC_DEMO !== 'undefined';
+/** In the static demo deadlines count from the snapshot day, so the recorded cases never go overdue. */
+export const today = () => (DEMO ? new Date(`${STATIC_DEMO}T09:00:00`) : new Date());
 
 export type CaseStatus = 'new' | 'processing' | 'awaiting_review' | 'approved' | 'rejected' | 'failed';
 export type Decision = 'uphold' | 'partial' | 'reject' | 'escalate';
@@ -95,16 +101,22 @@ export type RunMessage =
 export class Api {
   private readonly http = inject(HttpClient);
 
-  cases() { return this.http.get<CaseSummary[]>('/api/cases'); }
-  case(id: string) { return this.http.get<CaseDetail>(`/api/cases/${id}`); }
+  private get<T>(path: string) {
+    return this.http.get<T>(DEMO ? `demo/${path.replaceAll('/', '-')}.json` : `/api/${path}`);
+  }
+
+  cases() { return this.get<CaseSummary[]>('cases'); }
+  case(id: string) { return this.get<CaseDetail>(`cases/${id}`); }
   create(subject: string, body: string) { return this.http.post<{ id: string }>('/api/cases', { subject, body }); }
   decide(id: string, d: { action: 'approve' | 'edit' | 'reject'; body?: string; reason?: string }) {
     return this.http.post<CaseState['final']>(`/api/cases/${id}/decision`, d);
   }
-  chunk(id: string) { return this.http.get<Chunk>(`/api/chunks/${encodeURIComponent(id)}`); }
-  metrics() { return this.http.get<Metrics>('/api/metrics'); }
-  evals() { return this.http.get<EvalPayload>('/api/evals'); }
-  health() { return this.http.get<{ ok: boolean; data_mode: string; models: Record<string, string> }>('/api/health'); }
+  chunk(id: string) {
+    return DEMO ? this.get<Record<string, Chunk>>('chunks').pipe(map((all) => all[id])) : this.get<Chunk>(`chunks/${encodeURIComponent(id)}`);
+  }
+  metrics() { return this.get<Metrics>('metrics'); }
+  evals() { return this.get<EvalPayload>('evals'); }
+  health() { return this.get<{ ok: boolean; data_mode: string; models: Record<string, string> }>('health'); }
 
   /** Server-sent events for an agent run; completes when the run pauses for review or fails. */
   run(id: string): Observable<RunMessage> {

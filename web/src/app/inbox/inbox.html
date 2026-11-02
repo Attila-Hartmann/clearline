@@ -7,7 +7,7 @@
         Nothing reaches the customer until a person approves it.
       </p>
     </div>
-    <p-button label="Submit a complaint" icon="pi pi-pencil" (onClick)="composing.set(true)" />
+    @if (!demo) { <p-button label="Submit a complaint" icon="pi pi-pencil" (onClick)="composing.set(true)" /> }
   </section>
 
   <div class="toolbar" role="group" aria-label="Filter cases">
@@ -26,7 +26,7 @@
   } @else if (visible().length === 0) {
     <div class="panel empty">
       <p>No complaints waiting for review.</p>
-      <p-button label="Submit a complaint" [text]="true" (onClick)="composing.set(true)" />
+      @if (!demo) { <p-button label="Submit a complaint" [text]="true" (onClick)="composing.set(true)" /> }
     </div>
   } @else {
     <ul class="list panel" role="list">
