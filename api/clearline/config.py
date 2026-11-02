@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     drafter_api_key: str = ""
     drafter_region: Literal["eu", "non-eu"] = "non-eu"
 
+    core_banking_mcp_url: str = ""  # e.g. http://core-banking:8100/mcp; empty → in-process MCP server
     daily_live_case_limit: int = 50
     embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 

@@ -1,11 +1,16 @@
-"""Mock core-banking tools. Read-only by design: the agent can look facts up, never move money.
-The same functions are exposed to the LLM via function calling (and via the MCP server in mcp/)."""
+"""Mock core-banking tools behind an MCP server. Read-only by design: the agent can look facts up, never move money."""
 
 import json
+import sys
 from functools import lru_cache
 from typing import Any
 
-from clearline.config import ROOT
+from mcp import Client
+from mcp.server.mcpserver import MCPServer
+from mcp.server.transport_security import TransportSecuritySettings
+from mcp.types import CallToolResult, TextContent, Tool, ToolAnnotations
+
+from clearline.config import ROOT, settings
 
 BANK = ROOT / "data" / "bank"
 
@@ -24,6 +29,7 @@ def get_customer(customer_id: str) -> dict:
 
 
 def find_customer_by_card(card_last4: str) -> dict:
+    """Find a customer by the last 4 digits of their card."""
     hits = [c for c in _load("customers") if c["card_last4"] == card_last4.strip()]
     return hits[0] if len(hits) == 1 else {"error": f"{len(hits)} customers match card ****{card_last4}"}
 
@@ -44,30 +50,48 @@ def list_transactions(customer_id: str, date_from: str | None = None, date_to: s
 
 
 def get_fee_rule(fee_code: str) -> dict:
+    """Fee schedule rule for a fee code, e.g. PLUS_MONTHLY."""
     return _load("fees").get(fee_code.upper(), {"error": f"unknown fee code {fee_code}", "codes": list(_load("fees"))})
 
 
-REGISTRY = {f.__name__: f for f in (get_customer, find_customer_by_card, list_transactions, get_fee_rule)}
+TOOLS = (get_customer, find_customer_by_card, list_transactions, get_fee_rule)
 
-SCHEMAS = [
-    {"type": "function", "function": {"name": "get_customer", "description": get_customer.__doc__,
-     "parameters": {"type": "object", "properties": {"customer_id": {"type": "string"}}, "required": ["customer_id"]}}},
-    {"type": "function", "function": {"name": "find_customer_by_card", "description": "Find a customer by card last 4 digits.",
-     "parameters": {"type": "object", "properties": {"card_last4": {"type": "string"}}, "required": ["card_last4"]}}},
-    {"type": "function", "function": {"name": "list_transactions", "description": list_transactions.__doc__,
-     "parameters": {"type": "object", "properties": {
-         "customer_id": {"type": "string"}, "date_from": {"type": "string"}, "date_to": {"type": "string"},
-         "text": {"type": "string"}}, "required": ["customer_id"]}}},
-    {"type": "function", "function": {"name": "get_fee_rule", "description": "Fee schedule rule for a fee code, e.g. PLUS_MONTHLY.",
-     "parameters": {"type": "object", "properties": {"fee_code": {"type": "string"}}, "required": ["fee_code"]}}},
-]
+# The bank's side of the boundary: an MCP server the agent (or Claude Code, or any MCP client) connects to.
+# Run standalone with `python -m clearline.tools` (stdio) or `python -m clearline.tools --http` (streamable HTTP, :8100).
+server = MCPServer("danubia-core-banking", instructions="Read-only lookups in Danubia Bank's (synthetic) core banking.")
+for _fn in TOOLS:
+    server.add_tool(_fn, annotations=ToolAnnotations(read_only_hint=True, open_world_hint=False))
 
 
-def call(name: str, args: dict) -> Any:
-    fn = REGISTRY.get(name)
-    if fn is None:
-        return {"error": f"unknown tool {name}"}
+def connect() -> Client:
+    """MCP client for the agent: over HTTP when CORE_BANKING_MCP_URL is set, otherwise to the server in-process."""
+    return Client(settings().core_banking_mcp_url or server)
+
+
+def openai_schema(tool: Tool) -> dict:
+    return {"type": "function", "function": {"name": tool.name, "description": tool.description or "", "parameters": tool.input_schema}}
+
+
+def result_of(r: CallToolResult) -> Any:
+    text = "\n".join(c.text for c in r.content if isinstance(c, TextContent))
+    if r.is_error:  # unknown tool, bad arguments: reported back to the model instead of crashing the run
+        return {"error": text}
+    if isinstance(r.structured_content, dict) and set(r.structured_content) == {"result"}:
+        return r.structured_content["result"]  # non-object return values are wrapped by the server
+    if r.structured_content is not None:
+        return r.structured_content
     try:
-        return fn(**args)
-    except TypeError as e:  # bad arguments from the model: report back instead of crashing the run
-        return {"error": str(e)}
+        return json.loads(text)
+    except ValueError:
+        return text
+
+
+if __name__ == "__main__":
+    from clearline import tracing
+
+    tracing.setup()
+    if "--http" in sys.argv:
+        server.run("streamable-http", host="0.0.0.0", port=8100,  # noqa: S104  # container-internal service
+                   transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False))
+    else:
+        server.run()

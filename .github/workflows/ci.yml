@@ -52,3 +52,12 @@ jobs:
         with: { node-version: 24, cache: npm, cache-dependency-path: web/package-lock.json }
       - run: npm ci
       - run: npx ng build
+
+  image:
+    # The API image also runs the core-banking MCP server; build it so the Dockerfile cannot rot.
+    needs: api
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f api/Dockerfile -t clearline-api .
+      - run: docker image ls clearline-api

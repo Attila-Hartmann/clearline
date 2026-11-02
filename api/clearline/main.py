@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from clearline import db, rag, service
+from clearline import db, rag, service, tracing
 from clearline.agent.models import ReviewDecision
 from clearline.config import ROOT, settings
 
@@ -16,6 +16,7 @@ EVAL_REPORT = ROOT / "evals" / "reports" / "latest.json"
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    tracing.setup()
     db.migrate()
     with db.conn() as c:
         empty = c.execute("select count(*) n from doc_chunks").fetchone()["n"] == 0  # type: ignore[index]

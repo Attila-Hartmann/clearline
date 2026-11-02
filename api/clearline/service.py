@@ -16,6 +16,7 @@ from clearline.agent.graph import build
 from clearline.agent.models import ReviewDecision
 from clearline.config import settings
 from clearline.db import conn, pool
+from clearline.tracing import carrier, tracer
 
 SNAPSHOT_KEYS = ("redacted", "pii", "screen", "triage", "due_date", "extraction", "evidence", "investigation", "retrieved",
                  "assessment", "draft", "review", "final")
@@ -28,8 +29,8 @@ def graph():
     return build(saver)
 
 
-def _cfg(case_id: str) -> RunnableConfig:
-    return {"configurable": {"thread_id": case_id}}
+def _cfg(case_id: str, trace: dict | None = None) -> RunnableConfig:
+    return {"configurable": {"thread_id": case_id, "trace": trace or {}}}
 
 
 def create_case(subject: str, body: str, *, showcase: bool = False, received: str | None = None) -> str:
@@ -73,8 +74,10 @@ def run(case_id: str) -> Iterator[dict]:
         return
     inputs: Any = {"case_id": case_id, "subject": claimed["subject"], "body": claimed["body"],
               "received": claimed["received_at"].date().isoformat()}
+    # Explicit parent instead of a "current" span: this generator is resumed on different threadpool threads.
+    root = tracer.start_span(f"case {case_id}", attributes={"clearline.case_id": case_id})
     try:
-        for chunk in graph().stream(inputs, _cfg(case_id), stream_mode="updates"):
+        for chunk in graph().stream(inputs, _cfg(case_id, carrier(root)), stream_mode="updates"):
             for node, update in chunk.items():
                 if node == "__interrupt__":
                     continue
@@ -86,6 +89,8 @@ def run(case_id: str) -> Iterator[dict]:
         _set_status(case_id, "failed")
         _persist(case_id, {"events": [{"step": "error", "actor": "system", "payload": {"error": str(e)[:500]}}]})
         yield {"type": "error", "message": str(e)[:500]}
+    finally:
+        root.end()
 
 
 def decide(case_id: str, decision: ReviewDecision) -> dict:

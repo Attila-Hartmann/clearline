@@ -1,8 +1,10 @@
 """Unit tests for everything that must not depend on a model: redaction, deadlines, data residency, tools, parsing."""
 
+import asyncio
 from datetime import date
 
 import pytest
+from mcp import Client
 
 from clearline import guardrails, sla, tools
 from clearline.config import Settings
@@ -57,11 +59,19 @@ def test_synthetic_mode_allows_non_eu_and_reuses_worker_key():
     assert s.tier("drafter").api_key == "k"
 
 
-def test_tools_are_read_only_lookups():
-    assert tools.get_customer("c-1001")["name"] == "Kovács Anna"
-    assert [t["id"] for t in tools.list_transactions("C-1001", text="MEDIAMARKT")] == ["T-9001", "T-9002"]
-    assert "error" in tools.call("transfer_money", {"amount": 1})
-    assert "error" in tools.call("get_customer", {"wrong": "arg"})
+def test_mcp_server_exposes_only_read_only_lookups():
+    async def check():
+        async with Client(tools.server) as mcp:
+            listed = (await mcp.list_tools()).tools
+            assert {t.name for t in listed} == {"get_customer", "find_customer_by_card", "list_transactions", "get_fee_rule"}
+            assert all(t.annotations and t.annotations.read_only_hint for t in listed)
+            call = lambda name, args: mcp.call_tool(name, args)  # noqa: E731
+            assert tools.result_of(await call("get_customer", {"customer_id": "c-1001"}))["name"] == "Kovács Anna"
+            hits = tools.result_of(await call("list_transactions", {"customer_id": "C-1001", "text": "MEDIAMARKT"}))
+            assert [t["id"] for t in hits] == ["T-9001", "T-9002"]
+            assert "error" in tools.result_of(await call("transfer_money", {"amount": 1}))
+            assert "error" in tools.result_of(await call("get_customer", {"wrong": "arg"}))
+    asyncio.run(check())
 
 
 def test_docs_parse_into_sections_with_ids():

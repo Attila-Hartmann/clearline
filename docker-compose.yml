@@ -12,20 +12,38 @@ services:
       interval: 2s
       retries: 30
 
+  # The bank's side of the tool boundary: read-only core-banking lookups as an MCP server (not exposed to the host).
+  core-banking:
+    build: { context: ., dockerfile: api/Dockerfile }
+    command: ["python", "-m", "clearline.tools", "--http"]
+    environment:
+      OTEL_SERVICE_NAME: core-banking
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://jaeger:4318}
+    profiles: [full]
+
   api:
     build: { context: ., dockerfile: api/Dockerfile }
     env_file: .env
     environment:
       DATABASE_URL: postgresql://clearline:clearline@db:5432/clearline
+      CORE_BANKING_MCP_URL: http://core-banking:8100/mcp
+      OTEL_SERVICE_NAME: clearline-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://jaeger:4318}
+      OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT: "true"  # synthetic data only; see clearline/tracing.py
     ports: ["8000:8000"]
     depends_on:
       db: { condition: service_healthy }
     profiles: [full]
 
+  # Traces UI at http://localhost:16686. Point OTEL_EXPORTER_OTLP_ENDPOINT (+ _HEADERS) in .env at Langfuse to use that instead.
+  jaeger:
+    image: jaegertracing/jaeger:2.22.0
+    ports: ["16686:16686"]
+    profiles: [full]
+
   web:
     build: ./web
     ports: ["4200:80"]
-    depends_on: [api]
     profiles: [full]
 
 volumes:

@@ -6,6 +6,7 @@ Every node appends audit events (model, prompt version, tokens, cost, latency) t
 at human_review with `interrupt()`; nothing reaches the customer until a person approves, edits or rejects.
 """
 
+import asyncio
 import hashlib
 import json
 import operator
@@ -18,7 +19,7 @@ from typing import Annotated, Any, TypedDict
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 
-from clearline import guardrails, llm, rag, sla, tools
+from clearline import guardrails, llm, rag, sla, tools, tracing
 from clearline.agent.models import Assessment, Draft, Extraction, ReviewDecision, Screen, Triage
 
 PROMPTS = Path(__file__).resolve().parents[1] / "prompts"
@@ -101,6 +102,11 @@ def extract(state: State) -> dict:
 
 
 def investigate(state: State) -> dict:
+    return asyncio.run(_investigate(state))
+
+
+async def _investigate(state: State) -> dict:
+    """Tool loop against the core-banking MCP server: the agent only sees the tools the server lists."""
     system, pv = prompt("investigate")
     facts = {"triage": state["triage"], "extraction": state["extraction"]}
     messages: list[dict] = [
@@ -109,21 +115,23 @@ def investigate(state: State) -> dict:
     ]
     evidence, events = [], []
     summary = ""
-    for _ in range(MAX_TOOL_ROUNDS):
-        reply = llm.chat("worker", messages, tools=tools.SCHEMAS)
-        events.append(event("investigate.llm", usage=reply.usage, prompt_version=pv, tool_calls=len(reply.tool_calls)))
-        if not reply.tool_calls:
-            summary = reply.content
-            break
-        messages.append(reply.message.model_dump(exclude_none=True))
-        for tc in reply.tool_calls:
-            args = json.loads(tc.function.arguments or "{}")
-            t0 = time.perf_counter()
-            result = tools.call(tc.function.name, args)
-            evidence.append({"tool": tc.function.name, "args": args, "result": result})
-            events.append(event(f"tool.{tc.function.name}", "tool", args=args,
-                                latency_ms=int((time.perf_counter() - t0) * 1000), result_preview=str(result)[:300]))
-            messages.append({"role": "tool", "tool_call_id": tc.id, "content": json.dumps(result, ensure_ascii=False)})
+    async with tools.connect() as mcp:
+        schemas = [tools.openai_schema(t) for t in (await mcp.list_tools()).tools]
+        for _ in range(MAX_TOOL_ROUNDS):
+            reply = await asyncio.to_thread(llm.chat, "worker", messages, tools=schemas)
+            events.append(event("investigate.llm", usage=reply.usage, prompt_version=pv, tool_calls=len(reply.tool_calls)))
+            if not reply.tool_calls:
+                summary = reply.content
+                break
+            messages.append(reply.message.model_dump(exclude_none=True))
+            for tc in reply.tool_calls:
+                args = json.loads(tc.function.arguments or "{}")
+                t0 = time.perf_counter()
+                result = tools.result_of(await mcp.call_tool(tc.function.name, args))
+                evidence.append({"tool": tc.function.name, "args": args, "result": result})
+                events.append(event(f"tool.{tc.function.name}", "tool", args=args,
+                                    latency_ms=int((time.perf_counter() - t0) * 1000), result_preview=str(result)[:300]))
+                messages.append({"role": "tool", "tool_call_id": tc.id, "content": json.dumps(result, ensure_ascii=False)})
     return {"evidence": evidence, "investigation": summary or "Tool budget exhausted.", "events": events}
 
 
@@ -200,7 +208,7 @@ def build(checkpointer: Any = None, *, stop_before_review: bool = False):
     g = StateGraph(State)
     steps = [guard, triage, extract, investigate, retrieve, assess, draft]
     for fn in steps:
-        g.add_node(fn.__name__, fn)
+        g.add_node(fn.__name__, tracing.node(fn))
     g.add_edge(START, "guard")
     for a, b in zip(steps, steps[1:], strict=False):
         g.add_edge(a.__name__, b.__name__)

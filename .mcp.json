@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "danubia-core-banking": {
+      "command": "uv",
+      "args": ["run", "--directory", "api", "python", "-m", "clearline.tools"]
+    }
+  }
+}

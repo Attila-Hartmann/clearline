@@ -14,6 +14,7 @@ from openai import OpenAI
 from pydantic import BaseModel, ValidationError
 
 from clearline.config import settings
+from clearline.tracing import CAPTURE_CONTENT, tracer
 
 TierName = Literal["worker", "drafter"]
 
@@ -69,13 +70,23 @@ def chat(tier: TierName, messages: list[dict], *, json_mode: bool = False, tools
         kwargs["response_format"] = {"type": "json_object"}
     if tools:
         kwargs["tools"] = tools
-    t0 = time.perf_counter()
-    resp = client.chat.completions.create(**kwargs)
-    u = resp.usage
-    cached = getattr(getattr(u, "prompt_tokens_details", None), "cached_tokens", 0) or 0
-    usage = Usage(tier, model, u.prompt_tokens if u else 0, cached, u.completion_tokens if u else 0,
-                  int((time.perf_counter() - t0) * 1000))
-    msg = resp.choices[0].message
+    # OTel GenAI semantic conventions, so Langfuse / Azure Monitor render this as a model generation with usage.
+    with tracer.start_as_current_span(f"chat {model}", attributes={
+        "gen_ai.operation.name": "chat", "gen_ai.request.model": model, "server.address": client.base_url.host,
+        "clearline.tier": tier, "gen_ai.request.temperature": temperature}) as span:
+        t0 = time.perf_counter()
+        resp = client.chat.completions.create(**kwargs)
+        u = resp.usage
+        cached = getattr(getattr(u, "prompt_tokens_details", None), "cached_tokens", 0) or 0
+        usage = Usage(tier, model, u.prompt_tokens if u else 0, cached, u.completion_tokens if u else 0,
+                      int((time.perf_counter() - t0) * 1000))
+        msg = resp.choices[0].message
+        span.set_attributes({"gen_ai.response.model": resp.model, "gen_ai.usage.input_tokens": usage.tokens_in,
+                             "gen_ai.usage.output_tokens": usage.tokens_out, "gen_ai.usage.cache_read.input_tokens": cached,
+                             "clearline.cost_usd": usage.cost_usd})
+        if CAPTURE_CONTENT:
+            span.set_attribute("gen_ai.input.messages", json.dumps(messages, ensure_ascii=False, default=str))
+            span.set_attribute("gen_ai.output.messages", json.dumps([msg.model_dump(exclude_none=True)], ensure_ascii=False))
     return Reply(msg.content or "", usage, list(msg.tool_calls or []), msg)
 
 

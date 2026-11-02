@@ -119,6 +119,7 @@ def gate(summary: dict) -> list[str]:
 
 
 def main() -> int:
+    sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]  # Windows consoles default to a legacy codepage
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int)
     ap.add_argument("--workers", type=int, default=6)
