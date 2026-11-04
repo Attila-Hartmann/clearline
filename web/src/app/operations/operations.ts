@@ -26,12 +26,12 @@ import { STEP } from '../labels';
           <section class="panel">
             <h2>Where the time goes</h2>
             <table>
-              <thead><tr><th scope="col">Step</th><th scope="col">Calls</th><th scope="col">Median</th><th scope="col">p95</th><th scope="col">Cost</th></tr></thead>
+              <thead><tr><th scope="col">Step</th><th scope="col">Calls</th><th scope="col">Median</th><th scope="col" class="wide">p95</th><th scope="col">Cost</th></tr></thead>
               <tbody>
                 @for (s of m.per_step; track s.step) {
                   <tr>
                     <th scope="row">{{ STEP[s.step] ?? s.step }}</th>
-                    <td>{{ s.calls }}</td><td>{{ s.p50_ms }} ms</td><td>{{ s.p95_ms }} ms</td>
+                    <td>{{ s.calls }}</td><td>{{ s.p50_ms }} ms</td><td class="wide">{{ s.p95_ms }} ms</td>
                     <td>{{ s.cost_usd ? '$' + (s.cost_usd | number: '1.4-4') : '' }}</td>
                   </tr>
                 }
@@ -41,12 +41,12 @@ import { STEP } from '../labels';
           <section class="panel">
             <h2>Models</h2>
             <table>
-              <thead><tr><th scope="col">Model</th><th scope="col">Calls</th><th scope="col">Tokens in</th><th scope="col">Cached</th><th scope="col">Tokens out</th><th scope="col">Cost</th></tr></thead>
+              <thead><tr><th scope="col">Model</th><th scope="col">Calls</th><th scope="col">Tokens in</th><th scope="col" class="wide">Cached</th><th scope="col" class="wide">Tokens out</th><th scope="col">Cost</th></tr></thead>
               <tbody>
                 @for (x of m.per_model; track x.model) {
                   <tr>
                     <th scope="row">{{ x.model }}</th><td>{{ x.calls }}</td><td>{{ x.tokens_in | number }}</td>
-                    <td>{{ x.tokens_cached / (x.tokens_in || 1) | percent }}</td><td>{{ x.tokens_out | number }}</td>
+                    <td class="wide">{{ x.tokens_cached / (x.tokens_in || 1) | percent }}</td><td class="wide">{{ x.tokens_out | number }}</td>
                     <td>{{ '$' + (x.cost_usd | number: '1.4-4') }}</td>
                   </tr>
                 }
@@ -80,6 +80,12 @@ import { STEP } from '../labels';
     .plain { list-style: none; padding: 0; margin: 0; display: flex; gap: 24px; }
     .empty { padding: 24px; }
     @media (max-width: 1000px) { .two { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) {
+      section { padding: 16px 12px; }
+      th, td { padding: 8px 6px; font-size: 0.82rem; }
+      th[scope='row'] { white-space: normal; }
+      .wide { display: none; }
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
